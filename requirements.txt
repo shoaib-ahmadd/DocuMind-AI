@@ -1,0 +1,10 @@
+pypdf
+paddleocr
+paddlepaddle
+pdf2image
+Pillow
+sentence-transformers
+faiss-cpu
+numpy
+openai
+streamlit

@@ -1,0 +1,2 @@
+"""DocuMind AI utility package."""
+

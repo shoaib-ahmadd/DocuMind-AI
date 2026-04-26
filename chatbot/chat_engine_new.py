@@ -1,11 +1,13 @@
 """
 chat_engine.py — Production-ready RAG chat engine
-Stack: FAISS + Ollama (gemma:2b) + SentenceTransformer embeddings
+Stack: FAISS + Groq + SentenceTransformer embeddings
 """
 
 from __future__ import annotations
 
 import logging
+import os
+from groq import Groq
 import re
 import time
 from dataclasses import dataclass, field
@@ -45,10 +47,9 @@ class ChatConfig:
     # Context / prompt
     max_context_chars: int = 2500
 
-    # Ollama
-    ollama_model: str = "phi3:mini"
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_timeout: int = 180
+    # Groq
+    groq_model: str = "llama3-8b-8192"
+    groq_api_key: str = ""
 
     # Reranking weights
     semantic_weight: float = 0.70
@@ -389,7 +390,7 @@ def _build_context(results: Sequence[SearchResult], *, max_chars: int) -> str:
 
 def _synthesize_fallback(query: str, context: str, max_sentences: int = 4) -> str:
     """
-    Keyword-scored sentence extraction when Ollama is unavailable.
+    Keyword-scored sentence extraction when Groq is unavailable.
     Returns best matching sentences from context.
     """
     q_kw = _keyword_set(query)
@@ -425,59 +426,37 @@ def _synthesize_fallback(query: str, context: str, max_sentences: int = 4) -> st
 
 
 # ---------------------------------------------------------------------------
-# Ollama caller
+# Groq caller
 # ---------------------------------------------------------------------------
 
-def call_ollama(
+def call_groq(
     prompt: str,
     *,
-    model: str = "phi3:mini",
-    base_url: str = "http://localhost:11434",
-    timeout: int = 300,
-    retries: int = 2,
+    model: str = "llama3-8b-8192",
 ) -> str:
-    """
-    POST to Ollama /api/generate with retry logic.
-    Returns the model response string, or "" on failure.
-    """
-    url = f"{base_url.rstrip('/')}/api/generate"
-    payload = {"model": model, "prompt": prompt, "stream": False, "options":{"num_predict":120, "temperature":0.2, "num_ctx":1024}}
 
-    for attempt in range(1, retries + 2):
-        try:
-            logger.info("[Ollama] Attempt %d — model=%s prompt_len=%d", attempt, model, len(prompt))
-            t0 = time.monotonic()
-            response = requests.post(url, json=payload, timeout=timeout)
-            elapsed = time.monotonic() - t0
-            response.raise_for_status()
-            result = response.json().get("response", "").strip()
-            logger.info(
-                "[Ollama] ✅ Response in %.1fs — %d chars: %r",
-                elapsed, len(result), result[:120],
-            )
-            return result
+    client = Groq(
+        api_key=os.environ.get("GROQ_API_KEY")
+    )
 
-        except requests.exceptions.ConnectionError:
-            logger.error("[Ollama] ❌ Connection refused at %s (attempt %d)", base_url, attempt)
-            break  # No point retrying a connection refusal
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=1024,
+        )
 
-        except requests.exceptions.Timeout:
-            logger.warning("[Ollama] ⏱ Timeout after %ds (attempt %d/%d)", timeout, attempt, retries + 1)
-            if attempt <= retries:
-                time.sleep(1)
-            continue
+        return response.choices[0].message.content
 
-        except requests.exceptions.HTTPError as exc:
-            logger.error("[Ollama] HTTP error: %s (attempt %d)", exc, attempt)
-            if attempt <= retries:
-                time.sleep(1)
-            continue
-
-        except Exception as exc:
-            logger.exception("[Ollama] Unexpected error: %s (attempt %d)", exc, attempt)
-            break
-
-    return ""
+    except Exception as e:
+        logger.error(f"[Groq Error] {e}")
+        return "Error generating response from Groq."
 
 
 # ---------------------------------------------------------------------------
@@ -518,7 +497,7 @@ def _build_prompt(query: str, context: str) -> str:
 
 class ChatEngine:
     """
-    RAG chatbot — local FAISS + Ollama (gemma:2b).
+    RAG chatbot — FAISS + Groq.
 
     Lifecycle:
       - FAISS index is loaded from disk on __init__.
@@ -544,7 +523,7 @@ class ChatEngine:
 
         logger.info(
             "[ChatEngine] Initialized | model=%s | embed=%s | vectors=%s",
-            self._cfg.ollama_model,
+            self._cfg.groq_model,
             self._cfg.embed_model_name,
             n_vectors,
         )
@@ -597,10 +576,10 @@ class ChatEngine:
 
     def _local_fallback(self, query: str, context_clean: str, context_raw: str) -> str:
         """
-        When Ollama is unavailable: extract best sentences from context.
+        When Groq is unavailable: extract best sentences from context.
         Prefers cleaned context; falls back to raw if needed.
         """
-        print("[ChatEngine] ⚠️  Ollama unavailable — using local keyword fallback.")
+        print("[ChatEngine] ⚠️  Groq unavailable — using local keyword fallback.")
         logger.warning("[ChatEngine] Using local keyword fallback.")
 
         ctx = context_clean if context_clean.strip() else context_raw
@@ -695,20 +674,19 @@ class ChatEngine:
 
         logger.debug("[Answer] Prompt length: %d chars", len(prompt))
 
-        # ── 7. Call Ollama ────────────────────────────────────────────────
-        raw_answer = call_ollama(
+        # ── 7. Call Groq ────────────────────────────────────────────────
+        raw_answer = call_groq(
             prompt,
-            model=self._cfg.ollama_model,
-            base_url=self._cfg.ollama_base_url,
-            timeout=self._cfg.ollama_timeout,
+            model=self._cfg.groq_model,
+            api_key=self._cfg.groq_api_key,
         )
 
         # ── 8. Process answer ─────────────────────────────────────────────
         if raw_answer and len(raw_answer.strip()) > 5:
             answer = _finalize_answer(raw_answer)
-            print(f"[ChatEngine] ✅ Ollama answer ({len(answer)} chars).")
+            print(f"[ChatEngine] ✅ Groq answer ({len(answer)} chars).")
         else:
-            # Ollama failed or returned empty
+            # Groq failed or returned empty
             answer = self._local_fallback(q, context_clean, context_raw)
 
         # ── 9. Last-resort guard ──────────────────────────────────────────

@@ -5,6 +5,6 @@ Pillow
 sentence-transformers
 faiss-cpu
 numpy
-openai
 streamlit
-langchain
+langchain-groq
+openai

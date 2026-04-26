@@ -1,6 +1,4 @@
 pypdf
-paddleocr
-paddlepaddle
 pdf2image
 Pillow
 sentence-transformers

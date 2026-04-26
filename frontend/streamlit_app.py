@@ -1,14 +1,9 @@
 from __future__ import annotations
 # app.py  ── must be the very first two executable lines
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-from dotenv import load_dotenv
-load_dotenv(override=True)
 
 from dotenv import load_dotenv
 load_dotenv(override=True)          # reads .env from the working directory

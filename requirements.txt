@@ -7,4 +7,5 @@ faiss-cpu
 numpy
 streamlit
 langchain-groq
+groq
 openai

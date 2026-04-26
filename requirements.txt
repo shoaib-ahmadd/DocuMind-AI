@@ -1,4 +1,5 @@
 pypdf
+python-dotenv
 pdf2image
 Pillow
 sentence-transformers
@@ -6,3 +7,4 @@ faiss-cpu
 numpy
 openai
 streamlit
+langchain

@@ -40,12 +40,12 @@ class ChatConfig:
     embed_model_name: str = "all-MiniLM-L6-v2"
 
     # Retrieval
-    candidate_k: int = 30          # Cast a wide FAISS net
-    top_k: int = 5                # Final context chunks
-    similarity_threshold: float = -1.0  # Practical lower bound for MiniLM IP scores
+    candidate_k: int = 50          # Cast a wide FAISS net
+    top_k: int = 8                # Final context chunks
+    similarity_threshold: float = 0.25  # Practical lower bound for MiniLM IP scores
 
     # Context / prompt
-    max_context_chars: int = 2500
+    max_context_chars: int = 5000
 
     # Groq
     groq_model: str = "llama-3.3-70b-versatile"

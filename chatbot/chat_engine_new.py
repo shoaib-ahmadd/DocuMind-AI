@@ -48,7 +48,7 @@ class ChatConfig:
     max_context_chars: int = 2500
 
     # Groq
-    groq_model: str = "llama3-8b-8192"
+    groq_model: str = "llama-3.3-70b-versatile"
     groq_api_key: str = ("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")
 
     # Reranking weights
@@ -432,7 +432,7 @@ def _synthesize_fallback(query: str, context: str, max_sentences: int = 4) -> st
 def call_groq(
     prompt: str,
     *,
-    model: str = "llama3-8b-8192",
+    model: str = "llama-3.3-70b-versatile",
     api_key: str = "",
 ) -> str:
 

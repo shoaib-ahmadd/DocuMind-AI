@@ -345,7 +345,6 @@ def _sidebar() -> None:
         st.divider()
         if st.button("🗑️ Clear Chat", use_container_width=True):
             st.session_state.chat_history = []
-            st.rerun()
 
 
 # ---------------------------------------------------------------------------
@@ -460,8 +459,7 @@ def _on_get_answer() -> None:
     )
 
     st.session_state["question_input"] = ""
-    st.rerun()
-
+    
 
 # ---------------------------------------------------------------------------
 # Main
@@ -487,7 +485,7 @@ def main() -> None:
 
     # ── Header ────────────────────────────────────────────────────────
     st.title("DocuMind AI 🤖")
-    st.caption("Ask questions about your uploaded documents — powered by local RAG + Ollama.")
+    st.caption("Ask questions about your uploaded documents — powered by Groq + RAG.")
     st.divider()
 
     # ── Chat history ──────────────────────────────────────────────────

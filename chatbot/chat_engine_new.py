@@ -49,7 +49,7 @@ class ChatConfig:
 
     # Groq
     groq_model: str = "llama-3.3-70b-versatile"
-    groq_api_key: str = ("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")
+    groq_api_key: str = os.getenv("GROQ_API_KEY, "")
 
     # Reranking weights
     semantic_weight: float = 0.70

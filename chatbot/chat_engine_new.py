@@ -433,11 +433,12 @@ def call_groq(
     prompt: str,
     *,
     model: str = "llama3-8b-8192",
+    api_key: str = "",
 ) -> str:
 
     client = Groq(
-        api_key=os.environ.get("GROQ_API_KEY")
-    )
+    api_key=api_key or os.environ.get("GROQ_API_KEY")
+)
 
     try:
         response = client.chat.completions.create(

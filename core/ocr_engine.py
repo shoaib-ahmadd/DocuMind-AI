@@ -5,7 +5,8 @@ class OCRConfig:
     lang: str = "en"
 
 class OCREngine:
-    def__init__(self, *args, **kwargs):
-    pass
-    def extract_text(self, image)
-    return ""
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def extract_text(self, image):
+        return ""

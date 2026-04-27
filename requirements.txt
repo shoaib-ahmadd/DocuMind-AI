@@ -9,5 +9,3 @@ streamlit
 langchain-groq
 groq
 openai
-paddleocr
-paddlepaddle

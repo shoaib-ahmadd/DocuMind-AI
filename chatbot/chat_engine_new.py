@@ -41,11 +41,11 @@ class ChatConfig:
 
     # Retrieval
     candidate_k: int = 50          # Cast a wide FAISS net
-    top_k: int = 8                # Final context chunks
+    top_k: int = 10                # Final context chunks
     similarity_threshold: float = 0.25  # Practical lower bound for MiniLM IP scores
 
     # Context / prompt
-    max_context_chars: int = 5000
+    max_context_chars: int = 6000
 
     # Groq
     groq_model: str = "llama-3.3-70b-versatile"

@@ -449,7 +449,7 @@ def call_groq(
                     "content": prompt
                 }
             ],
-            temperature=0.3,
+            temperature=0.2,
             max_tokens=1024,
         )
 
@@ -472,17 +472,16 @@ def _build_prompt(query: str, context: str) -> str:
     """
     if context.strip():
         return (
-    "You are a document assistant.\n\n"
-    "Answer ONLY from the provided document context.\n"
-    "If the answer is not present in the context, say:\n"
-    "'I could not find this in the uploaded documents.'\n\n"
-    "Do not use outside knowledge.\n"
-    "Do not hallucinate.\n"
-    "Keep answers concise, accurate, and relevant.\n"
-    "Preserve formulas and KPI names exactly.\n\n"
-    f"QUESTION:\n{query}\n\n"
-    f"CONTEXT:\n{context}\n\n"
-    "ANSWER:"
+"You are a smart document assistant.\n\n"
+"Answer primarily from the provided document context.\n"
+"If the exact answer is not directly present but related information exists, infer carefully and provide a concise helpful explanation.\n"
+"Use document context first, but you may use general knowledge for common concepts, abbreviations, formulas, or KPIs when helpful.\n"
+"Only say 'I could not find this in the uploaded documents' when absolutely no relevant information exists.\n"
+"Keep answers accurate, relevant, and concise.\n"
+"Preserve formulas and KPI names exactly when available.\n\n"
+f"QUESTION:\n{query}\n\n"
+f"CONTEXT:\n{context}\n\n"
+"ANSWER:"
 )
     else:
         return (
